@@ -1,11 +1,72 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
 <head>
     <title>Spring Security Example</title>
 </head>
+<style>
+    body {
+        background-color: slategrey;
+    }
+
+    header {
+        display: flex;
+        justify-content: space-around;
+        color: #fdffb0;
+        font-size: 40px;
+        text-shadow: 1px 1px 2px rgba(14, 1, 1, 0.87);
+    }
+
+    .title {
+        text-align: center;
+    }
+
+    header form {
+        position: fixed;
+        right: 5px;
+    }
+
+    form {
+        text-align: center;
+        font-size: 20px;
+    }
+
+    .btn-exit {
+        padding: 10px 20px;
+        background-color: #ff4747;
+        color: #000000;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 16px;
+        text-align: center;
+        margin-inline: 70px;
+    }
+
+    .info {
+        margin: auto;
+        font-size: 40px;
+        display: block;
+        border: none;
+        background-color: #ffffff;
+        margin-inline: 600px;
+        border-radius: 20px;
+    }
+</style>
 <body>
-<h1>User, welcome spring boot security page!</h1>
-
-
+<header>
+    <h1 class="title" th:text="'Данные пользователя ' + ${user.username}"></h1>
+    <form th:action="@{/logout}" method="get">
+        <p th:text="${username}"></p>
+        <p th:text="${role}"></p>
+        <button type="submit" class="btn-exit">Выход</button>
+    </form>
+</header>
+<form class="info" th:object="${user}">
+    <div><label th:text="'Имя - ' + ${user.firstName}"></label></div>
+    <div><label th:text="'Фамилия - ' + ${user.lastName}"></label></div>
+    <div><label th:text="'Электронная почта - ' + ${user.email}"></label></div>
+    <div><label th:text="'Возраст - ' + ${user.age}"></label></div>
+    <div><label th:text="'Имя в учете - ' + ${user.username}"></label></div>
+    <div><label th:text="'Роли доступа - ' + ${user.roles}"></label></div>
+</form>
 </body>
 </html>

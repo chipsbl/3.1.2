@@ -1,11 +1,23 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Spring Security Example</title>
 </head>
+<style>
+    body {
+        background-color: #708090;
+    }
+
+    a {
+        display: flex;
+        justify-content: center;
+        font-size: 60px;
+        margin-top: 400px;
+        text-decoration: none;
+        color: white;
+    }
+</style>
 <body>
-<h1>Welcome to Index PAGE!</h1>
-
-
+<a th:href="@{/login}">Авторизоваться</a>
 </body>
 </html>
