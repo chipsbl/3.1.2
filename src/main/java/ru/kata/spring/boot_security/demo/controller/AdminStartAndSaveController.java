@@ -1,6 +1,7 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
-import ru.kata.spring.boot_security.demo.service.UserDetailServiceImpl;
+import ru.kata.spring.boot_security.demo.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -24,22 +25,24 @@ import java.util.stream.Collectors;
 @RequestMapping("/admin")
 public class AdminStartAndSaveController {
 
-    private final UserDetailServiceImpl userdetailServiceImpl;
+    private final UserService userService;
     private final RoleService roleService;
 
-    public AdminStartAndSaveController(UserDetailServiceImpl userService, RoleService roleService) {
-        this.userdetailServiceImpl = userService;
+    public AdminStartAndSaveController(UserService userService, RoleService roleService) {
+        this.userService = userService;
         this.roleService = roleService;
     }
 
     //Страница со всеми пользователями
+    @Transactional(readOnly = true)
     @GetMapping()
     public String home(Model model) {
-        model.addAttribute("users", userdetailServiceImpl.getAll());
+        model.addAttribute("users", userService.getAll());
         return "users";
     }
 
     //Форма создания пользователя
+    @Transactional(readOnly = true)
     @GetMapping("/save")
     public String saveUser(Model model) {
         model.addAttribute("user", new User());
@@ -68,7 +71,61 @@ public class AdminStartAndSaveController {
                     .collect(Collectors.toList());
         }
         user.setRoles(roles);
-        userdetailServiceImpl.save(user);
+        userService.save(user);
+        return "redirect:/admin";
+    }
+
+    //Обновление пользователя
+    @Transactional(readOnly = true)
+    @GetMapping("/update")
+    public String editUser(@RequestParam Long id, Model model) {
+        User user = userService.getById(id);
+        model.addAttribute("allRoles", roleService.getAllRoles());
+        model.addAttribute("user", user);
+        return "update";
+    }
+
+    //Отправка формы обновления
+    @PostMapping("/update")
+    public String updateUser(@RequestParam Long id, @Valid @ModelAttribute("user") User user,
+                             BindingResult bindingResult,
+                             @RequestParam(name = "selectedRoles", required = false) List<Long> selectedRoleIds,
+                             Model model) {
+        if (bindingResult.getFieldErrors()
+                .stream()
+                .anyMatch(fieldError -> !fieldError.getField().equals("password")) || !user.getPassword().isEmpty()) {
+            model.addAttribute("allRoles", roleService.getAllRoles());
+            model.addAttribute("selectedRoleIds", selectedRoleIds);
+            return "update";
+        }
+        Collection<Role> roles;
+        if (selectedRoleIds == null || selectedRoleIds.isEmpty()) {
+            roles = Collections.singletonList(roleService.findByName("ROLE_USER"));
+        } else {
+            roles = selectedRoleIds.stream()
+                    .map(roleService::findById)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toList());
+        }
+        user.setRoles(roles);
+        userService.update(user);
+        return "redirect:/admin";
+    }
+
+    //Окно всплытия удаление пользователя
+    @Transactional(readOnly = true)
+    @GetMapping("/delete")
+    public String deleteUserWindow(@RequestParam Long id, Model model) {
+        User user = userService.getById(id);
+        model.addAttribute("user", user);
+        return "delete";
+    }
+
+    //Удаление пользователя
+    @PostMapping("/delete")
+    public String deleteUser(@RequestParam Long id) {
+        userService.delete(id);
         return "redirect:/admin";
     }
 }
